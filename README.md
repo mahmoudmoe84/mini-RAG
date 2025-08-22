@@ -13,4 +13,15 @@ building a mini-RAG to use it on my private documents and books
 3- add postcreatecommand
 4- mise package handler to be added to create venv and intall helm & other needed kubernestes packages
 
+### Installation
 
+1- UV installation using uv sync
+2- pyproject.toml is created
+3- add fastapi and uvicorn[standard]
+
+### Setup enviroment variables
+
+```bash
+$ cp .env.example .env
+
+set your enviroment variables in the .env such as OPENAI_API_KEY
