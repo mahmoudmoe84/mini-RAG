@@ -25,3 +25,8 @@ building a mini-RAG to use it on my private documents and books
 $ cp .env.example .env
 
 set your enviroment variables in the .env such as OPENAI_API_KEY
+
+``` bash 
+run API server 
+uvicorn main:app --reload --port 8001
+```
