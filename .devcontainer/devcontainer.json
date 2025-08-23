@@ -12,6 +12,7 @@
         "ghcr.io/devcontainers-extra/features/tmux-apt-get:1":{},
         "ghcr.io/devcontainers-extra/features/mise:1":{},
         "ghcr.io/devcontainers-extra/features/kind:1":{},
+        "ghcr.io/devcontainers-contrib/features/direnv:1": {},
         "ghcr.io/rails/devcontainer/features/postgres-client:1.1.2":{}
     }, // <-- No trailing comma here
 
@@ -32,4 +33,5 @@
     "remoteUser": "root",
     "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
     "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}"
+}
 }

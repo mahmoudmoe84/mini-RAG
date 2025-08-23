@@ -21,6 +21,17 @@ if [ -f ".pre-commit-config.yaml" ]; then
     pre-commit install
 fi
 
+# Install and configure direnv
+echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
+
+# Create .envrc file in project root
+cat << EOF > ../.envrc
+# Automatically load Python virtual environment
+layout python3
+EOF
+
+# Allow the .envrc file
+direnv allow ../.envrc
 
 mise turst
 mise install
