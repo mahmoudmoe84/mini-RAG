@@ -1,28 +1,32 @@
 #!/bin/bash
-# This script is executed after the container is created.
-# It installs the necessary Python packages and sets up the environment.
-#!/bin/bash
+set -e  # Exit on error
 
-# Install pre-commit using pip
+# Setup mise
+mise trust  # Fixed typo from 'turst'
+mise install
+
+# Create and activate virtual environment
+python -m venv .venv
+. .venv/bin/activate
+
+# Install core tools
+pip install --upgrade pip
 pip install pre-commit
 
-# Install your project dependencies
-if [ -f "requirements.txt" ]; then
+# Install project dependencies
+if [ -f "pyproject.toml" ]; then
+    uv pip install -e .
+elif [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 fi
 
-# If using uv for package management
-if [ -f "pyproject.toml" ]; then
-    uv sync
-fi
-
-# Install pre-commit hooks if .pre-commit-config.yaml exists
+# Install pre-commit hooks if configured
 if [ -f ".pre-commit-config.yaml" ]; then
     pre-commit install
 fi
 
+# Add environment activation to shell startup
+echo '. /workspaces/mini-RAG/.venv/bin/activate' >> ~/.bashrc
 
-mise turst
-mise install
+# Setup mise shell integration
 echo 'eval "$(/usr/local/bin/mise activate bash)"' >> ~/.bashrc
-source ~/.bashrc
