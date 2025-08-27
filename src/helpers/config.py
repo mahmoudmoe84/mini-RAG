@@ -31,4 +31,4 @@ def file_allowed_types_list(self) -> List[str]:
         return ["text/plain", "application/pdf"]
 
 def get_settings() -> Settings:
-    return settings
+    return settings 
