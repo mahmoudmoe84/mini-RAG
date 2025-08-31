@@ -30,3 +30,7 @@ set your enviroment variables in the .env such as OPENAI_API_KEY
 run API server 
 uvicorn main:app --reload --port 8001
 ```
+## RUN DOCKER COMPOSE SERVICE
+ - use .env file for settings to add use name and pass word
+ - we run multiple services from the docker compose file 
+    - Mongodb

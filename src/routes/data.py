@@ -64,12 +64,12 @@ async def process_endpoint(request:Request, project_id:str,
     file_id = process_request.file_id
     chunk_size = process_request.chunk_size
     overlap_size = process_request.overlap_size
+    do_reset = process_request.do_reset
     
     project_model = ProjectModel(db_client=request.app.db_client)
     
     project = await project_model.get_project_or_create_one(project_id=project_id)
-    
-    
+        
     process_controller = ProcessController(project_id=project_id) 
     
     file_content = process_controller.get_file_content(file_id=file_id)
@@ -96,6 +96,33 @@ async def process_endpoint(request:Request, project_id:str,
         for i,chunk in enumerate(file_chunks)
     ]
     chunk_model = ChunkModel(db_client=request.app.db_client)
+
+    if do_reset ==1:
+        _= await chunk_model.delete_chunks_by_project_id(project_id=project.id)
+        
     no_records = await chunk_model.insert_many_chunks(chunks=file_chunks_records)
-    return no_records
-                                                
+    return JSONResponse(
+        content = {"signal":ResponseSignal.PROCESSING_SUCCESS.value,
+                   "Inserted_chunks": no_records}
+    )
+
+
+# @data_router.get("/debug/db")
+# async def test_db_connection(request: Request):
+#     try:
+#         db_client = request.app.db_client
+#         await db_client.command('ping')
+#         collections = await db_client.list_collection_names()
+        
+#         return {
+#             "status": "connected",
+#             "database": db_client.name,
+#             "collections": collections
+#         }
+#     except Exception as e:
+#         return {"status": "failed", "error": str(e)}
+# @data_router.get("/debug/chunk-count")
+# async def get_chunk_count(request: Request):
+#     chunk_model = ChunkModel(db_client=request.app.db_client)
+#     count = await chunk_model.collection.count_documents({})
+#     return {"chunk_count": count}
