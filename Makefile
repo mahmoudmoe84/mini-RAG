@@ -1,73 +1,45 @@
-# Makefile for mini-rag project
-# Docker cleanup and management commands
+# Simple Docker cleanup for mini-rag project
 
-.PHONY: help clean-docker stop-containers remove-containers remove-images clean-all docker-status
+.PHONY: help show clean safe-clean clean-old danger
 
-# Default target
 help:
-	@echo "Available commands for mini-rag project:"
-	@echo "  make docker-status    - Show Docker status"
-	@echo "  make stop-containers  - Stop all running containers"
-	@echo "  make remove-containers- Remove all containers"
-	@echo "  make remove-images    - Remove all Docker images"
-	@echo "  make clean-docker     - Complete Docker cleanup"
-	@echo "  make clean-all        - Nuclear option - clean everything"
+	@echo "Docker commands:"
+	@echo "  make show       - Show what's in Docker"
+	@echo "  make clean      - Clean unused stuff (safe)"
+	@echo "  make clean-old  - Remove old images only"
+	@echo "  make danger     - Delete everything (dangerous!)"
 
-# Show current Docker status
-docker-status:
-	@echo "=== Docker Status ==="
-	@echo "Running containers:"
+# Show what we have
+show:
+	@echo "=== Running containers ==="
 	@docker ps
-	@echo "\nAll containers:"
-	@docker ps -a
-	@echo "\nDocker images:"
+	@echo "=== All images ==="
 	@docker images
+	@echo "=== Disk usage ==="
+	@docker system df
 
-# Stop all containers
-stop-containers:
-	@echo "Stopping all Docker containers..."
-	@docker stop $$(docker ps -aq) 2>/dev/null || echo "No containers to stop"
+# Safe cleanup - only unused stuff
+clean:
+	@echo "Cleaning unused Docker stuff..."
+	@docker image prune -a -f
+	@docker container prune -f
+	@echo "Done!"
 
-# Remove all containers
-remove-containers: stop-containers
-	@echo "Removing all Docker containers..."
-	@docker rm $$(docker ps -aq) 2>/dev/null || echo "No containers to remove"
+# Remove old images only
+clean-old:
+	@echo "Removing unused images..."
+	@docker image prune -a -f
+	@echo "Old images removed!"
 
-# Remove all images
-remove-images:
-	@echo "Removing all Docker images..."
-	@docker rmi $$(docker images -q) 2>/dev/null || echo "No images to remove"
-
-# Clean Docker (safe version)
-clean-docker:
-	@echo "Starting Docker cleanup..."
-	@$(MAKE) stop-containers
-	@docker system prune -f
-	@docker volume prune -f
-	@docker network prune -f
-	@docker builder prune -f
-	@echo "Docker cleanup completed!"
-
-# Nuclear option - clean everything
-clean-all:
-	@echo "⚠️  WARNING: This will remove EVERYTHING from Docker!"
-	@read -p "Are you sure? (y/N): " confirm && [ "$$confirm" = "y" ] || exit 1
-	@$(MAKE) stop-containers
-	@$(MAKE) remove-containers
-	@$(MAKE) remove-images
+# Dangerous - everything goes
+danger:
+	@echo "WARNING: This deletes EVERYTHING!"
+	@read -p "Type yes to continue: " answer && [ "$$answer" = "yes" ] || exit 1
+	@docker stop $$(docker ps -aq) 2>/dev/null || true
 	@docker system prune -a -f --volumes
-	@docker builder prune -a -f
-	@echo "🧹 Complete Docker cleanup finished!"
+	@echo "Everything deleted!"
 
-# Project specific commands (you can add your mini-rag commands here)
-build:
-	@echo "Building mini-rag project..."
-	# Add your build commands here
-
-run:
-	@echo "Running mini-rag project..."
-	# Add your run commands here
-
-dev:
-	@echo "Starting mini-rag in development mode..."
-	# Add your dev commands here
+mongo-up:
+	@echo "Starting MongoDB with docker-compose..."
+	@docker-compose -f docker/docker-compose.yml up -d
+	@echo "MongoDB started! Check with 'docker ps'"
