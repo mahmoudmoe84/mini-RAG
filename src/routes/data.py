@@ -10,8 +10,9 @@ from .schemas.data import ProcessRequest
 from controllers.ProcessController import ProcessController
 from models.ProjectModel import ProjectModel
 from models.ChunkModel import ChunkModel
-from models.db_schemes import DataChunk
-
+from models.db_schemes import DataChunk , Asset
+from models.AssetModel import AssetModel
+from models.enums.AssetTypeEnum import AssetTypeEnum
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -51,10 +52,21 @@ async def upload_data(request: Request, project_id:str,file: UploadFile,app_sett
         return JSONResponse(
             content={
                 "signal":ResponseSignal.FILE_UPLOAD_FAILED.value})
+    
+    #store the assets into the database
+    asset_model = await AssetModel.create_instance(db_client=request.app.db_client)
+    asset_resource = Asset(
+        asset_project_id=project.id,
+        asset_type =AssetTypeEnum.FILE.value,
+        asset_name=file_id,
+        asset_size=os.path.getsize(file_path),
+    )
+
+    asset_record = await asset_model.create_asset(asset=asset_resource)
     return JSONResponse(
         status_code = status.HTTP_200_OK,
         content = {"signal":ResponseSignal.FILE_UPLOADED_SUCCESSFULLY.value,
-                   "file_id":file_id,
+                   "file_id":str(asset_record.id),
                    "project_id":str(project.id)
                    }
         )
@@ -70,9 +82,9 @@ async def process_endpoint(request:Request, project_id:str,
     
     project = await project_model.get_project_or_create_one(project_id=project_id)
         
-    process_controller = ProcessController(project_id=project_id) 
+    process_controller = ProcessController(project_id=project_id, db_client=request.app.db_client) 
     
-    file_content = process_controller.get_file_content(file_id=file_id)
+    file_content = await process_controller.get_file_content(file_id=file_id)
     file_chunks =process_controller.process_file_content(
         file_content=file_content,
         file_id=file_id,
