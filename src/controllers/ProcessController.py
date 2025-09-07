@@ -16,22 +16,26 @@ class ProcessController(BaseController):
         self.project_path = ProjectController().get_project_path(project_id=project_id)
         self.db_client = db_client
 
-    def get_file_extension(self,filename:str):
-        return os.path.splitext(filename)[-1]
+    def get_file_extension(self,file_id:str):
+        return os.path.splitext(file_id)[-1]
     
-    async def get_file_loader(self,file_id:str):
-        # First, get the asset from database to find the actual filename
-        asset_model = await AssetModel.create_instance(db_client=self.db_client)
-        asset = await asset_model.get_asset_by_id(ObjectId(file_id))
+    def get_file_loader(self,file_id:str):
+        # # First, get the asset from database to find the actual file_id
+        # asset_model = await AssetModel.create_instance(db_client=self.db_client)
+        # asset = await asset_model.get_asset_by_id(ObjectId(file_id))
         
-        if not asset:
-            return None
+        # if not asset:
+        #     return None
             
-        # Use the asset_name (which contains the actual filename with extension)
-        filename = asset.asset_name
-        file_ext = self.get_file_extension(filename)
-        file_path = os.path.join(self.project_path, filename)
+        # # Use the asset_name (which contains the actual file_id with extension)
+        # file_id = asset.asset_name
         
+        file_ext = self.get_file_extension(file_id)
+        file_path = os.path.join(self.project_path, file_id)
+        
+        if not os.path.exists(file_path):
+            return None
+
         if file_ext == ProcessingSignal.TXT.value:
             return TextLoader(file_path, encoding="utf-8")
         if file_ext == ProcessingSignal.PDF.value:
@@ -39,11 +43,11 @@ class ProcessController(BaseController):
 
         return None
 
-    async def get_file_content(self, file_id):
-        loader = await self.get_file_loader(file_id=file_id)
-        if loader is None:
-            raise ValueError(f"No loader found for file_id: {file_id}")
-        return loader.load()
+    def get_file_content(self, file_id):
+        loader = self.get_file_loader(file_id=file_id)
+        if loader :
+            return loader.load()
+        return None
     
     def process_file_content(self,file_content:list,
                              file_id:str,chunk_size:int=100,
